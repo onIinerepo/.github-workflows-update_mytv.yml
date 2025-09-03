@@ -45,6 +45,29 @@ jobs:
           print(f"Updated {len(license_keys)} channels")
           EOF
           
+      - name: Debug repository name
+        run: |
+          echo "Repository name: $GITHUB_REPOSITORY"
+          echo "Owner: $GITHUB_REPOSITORY_OWNER"
+          echo "Repo: $GITHUB_REPOSITORY_NAME"
+          
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add playlist.txt
+          git commit -m "Auto-update MyTV parameters" || true
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git          
+          for i in range(len(license_keys)):
+              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
+              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
+          
+          with open('playlist.txt', 'w', encoding='utf-8') as f:
+              f.write(template)
+            
+          print(f"Updated {len(license_keys)} channels")
+          EOF
+          
       - name: Commit changes
         run: |
           git config user.name "GitHub Actions"
