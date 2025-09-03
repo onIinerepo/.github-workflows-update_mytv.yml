@@ -1,40 +1,44 @@
-name: Auto-Update MyTV Parameters
-
-on:
-  schedule:
-    - cron: '0 */3 * * *'  # Setiap 3 jam
-  workflow_dispatch:      # Boleh trigger manual
-
-jobs:
-  update:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+- name: Extract parameters and update playlist
+  run: |
+    python3 << 'EOF'
+    import os
+    import re
+    
+    # Debug: Semak current directory & files
+    print("Current directory:", os.getcwd())
+    print("Files in directory:", os.listdir())
+    
+    # Debug: Semak folder Autoupdate
+    if os.path.exists('Autoupdate'):
+        print("Autoupdate folder exists")
+        print("Files in Autoupdate:", os.listdir('Autoupdate'))
+    else:
+        print("Autoupdate folder NOT FOUND!")
+    
+    # Baca fail sumber
+    with open('source.txt', 'r', encoding='utf-8') as f:
+        source = f.read()
+    
+    # Ekstrak parameter
+    license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
+    urls = re.findall(r'(http://[^\s]+)', source)
+    
+    # Baca template
+    template_path = 'Autoupdate/mytv_template.txt'
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template = f.read()
+    
+    # Ganti placeholder
+    for i in range(len(license_keys)):
+        template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
+        template = template.replace(f'URL_STREAM_{i+1}', urls[i])
+    
+    # Simpan output
+    with open('playlist.txt', 'w', encoding='utf-8') as f:
+        f.write(template)
         
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          
-      - name: Download latest MyTV source
-        run: |
-          curl -s "https://tv.iill.top/m3u/MyTV" -o source.txt
-          
-      - name: Extract parameters and update playlist
-        run: |
-          python3 << 'EOF'
-          import re
-          
-          # Baca fail sumber
-          with open('source.txt', 'r', encoding='utf-8') as f:
-              source = f.read()
-          
-          # Ekstrak semua license_key dan URL
-          license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
-          urls = re.findall(r'(http://[^\s]+)', source)
-          
-          # Baca template dari folder Autoupdate
+    print(f"Updated {len(license_keys)} channels")
+    EOF          # Baca template dari folder Autoupdate
           with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
               template = f.read()
           
