@@ -38,26 +38,4 @@
         f.write(template)
         
     print(f"Updated {len(license_keys)} channels")
-    EOF          # Baca template dari folder Autoupdate
-          with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
-              template = f.read()
-          
-          # Ganti placeholder dengan nilai sebenar
-          for i in range(len(license_keys)):
-              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
-              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
-          
-          # Simpan sebagai playlist akhir di root
-          with open('playlist.txt', 'w', encoding='utf-8') as f:
-              f.write(template)
-              
-          print(f"Updated {len(license_keys)} channels")
-          EOF
-          
-      - name: Commit changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add playlist.txt
-          git commit -m "🔄 Auto-update MyTV parameters" || exit 0
-          git push
+    EOF
