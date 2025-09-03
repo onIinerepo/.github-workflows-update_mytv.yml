@@ -26,15 +26,32 @@ jobs:
           import os
           import re
           
-          print("Current directory:", os.getcwd())
-          print("Files in directory:", os.listdir())
+          with open('source.txt', 'r', encoding='utf-8') as f:
+              source = f.read()
           
-          if os.path.exists('Autoupdate'):
-              print("Autoupdate folder exists")
-              print("Files in Autoupdate:", os.listdir('Autoupdate'))
-          else:
-              print("Autoupdate folder NOT FOUND!")
-              exit(1)
+          license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
+          urls = re.findall(r'(http://[^\s]+)', source)
+          
+          with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
+              template = f.read()
+          
+          for i in range(len(license_keys)):
+              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
+              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
+          
+          with open('playlist.txt', 'w', encoding='utf-8') as f:
+              f.write(template)
+            
+          print(f"Updated {len(license_keys)} channels")
+          EOF
+          
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add playlist.txt
+          git commit -m "🔄 Auto-update MyTV parameters" || exit 0
+          git push              exit(1)
           
           with open('source.txt', 'r', encoding='utf-8') as f:
               source = f.read()
