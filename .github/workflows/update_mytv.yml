@@ -2,8 +2,8 @@ name: Auto-Update MyTV Parameters
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Setiap 3 jam
-  workflow_dispatch:      # Boleh trigger manual
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
 
 jobs:
   update:
@@ -18,8 +18,7 @@ jobs:
           python-version: '3.10'
           
       - name: Download latest MyTV source
-        run: |
-          curl -s "https://tv.iill.top/m3u/MyTV" -o source.txt
+        run: curl -s "https://tv.iill.top/m3u/MyTV" -o source.txt
           
       - name: Extract parameters and update playlist
         run: |
@@ -35,6 +34,7 @@ jobs:
               print("Files in Autoupdate:", os.listdir('Autoupdate'))
           else:
               print("Autoupdate folder NOT FOUND!")
+              exit(1)
           
           with open('source.txt', 'r', encoding='utf-8') as f:
               source = f.read()
@@ -42,8 +42,7 @@ jobs:
           license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
           urls = re.findall(r'(http://[^\s]+)', source)
           
-          template_path = 'Autoupdate/mytv_template.txt'
-          with open(template_path, 'r', encoding='utf-8') as f:
+          with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
               template = f.read()
           
           for i in range(len(license_keys)):
@@ -62,70 +61,4 @@ jobs:
           git config user.email "actions@github.com"
           git add playlist.txt
           git commit -m "🔄 Auto-update MyTV parameters" || exit 0
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}              print("Autoupdate folder NOT FOUND!")
-          
-          with open('source.txt', 'r', encoding='utf-8') as f:
-              source = f.read()
-          
-          license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
-          urls = re.findall(r'(http://[^\s]+)', source)
-          
-          template_path = 'Autoupdate/mytv_template.txt'
-          with open(template_path, 'r', encoding='utf-8') as f:
-              template = f.read()
-          
-          for i in range(len(license_keys)):
-              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
-              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
-          
-          with open('playlist.txt', 'w', encoding='utf-8') as f:
-              f.write(template)
-            
-          print(f"Updated {len(license_keys)} channels")
-          EOF
-          
-      - name: Commit changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add playlist.txt
-          git commit -m "🔄 Auto-update MyTV parameters" || exit 0
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}              print("Autoupdate folder NOT FOUND!")
-          
-          with open('source.txt', 'r', encoding='utf-8') as f:
-              source = f.read()
-          
-          license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
-          urls = re.findall(r'(http://[^\s]+)', source)
-          
-          template_path = 'Autoupdate/mytv_template.txt'
-          with open(template_path, 'r', encoding='utf-8') as f:
-              template = f.read()
-          
-          for i in range(len(license_keys)):
-              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
-              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
-          
-          with open('playlist.txt', 'w', encoding='utf-8') as f:
-              f.write(template)
-            
-          print(f"Updated {len(license_keys)} channels")
-          EOF
-          
-      - name: Commit changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add playlist.txt
-          git commit -m "🔄 Auto-update MyTV parameters" || exit 0
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}    with open('playlist.txt', 'w', encoding='utf-8') as f:
-        f.write(template)
-        
-    print(f"Updated {len(license_keys)} channels")
-    EOF
+          git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
