@@ -1,4 +1,40 @@
-Use GITHUB_REPOSITORY variable          
+name: Auto-Update MyTV Parameters
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Download latest MyTV source
+        run: curl -s "https://tv.iill.top/m3u/MyTV" -o source.txt
+          
+      - name: Extract parameters and update playlist
+        run: |
+          python3 << 'EOF'
+          import os
+          import re
+          
+          with open('source.txt', 'r', encoding='utf-8') as f:
+              source = f.read()
+          
+          license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
+          urls = re.findall(r'(http://[^\s]+)', source)
+          
+          with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
+              template = f.read()
+          
           for i in range(len(license_keys)):
               template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
               template = template.replace(f'URL_STREAM_{i+1}', urls[i])
@@ -9,11 +45,10 @@ Use GITHUB_REPOSITORY variable
           print(f"Updated {len(license_keys)} channels")
           EOF
           
-      - name: Debug repository name
+      - name: Debug repository info
         run: |
-          echo "Repository name: $GITHUB_REPOSITORY"
-          echo "Owner: $GITHUB_REPOSITORY_OWNER"
-          echo "Repo: $GITHUB_REPOSITORY_NAME"
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "Current branch: $GITHUB_REF_NAME"
           
       - name: Commit changes
         run: |
@@ -21,21 +56,4 @@ Use GITHUB_REPOSITORY variable
           git config user.email "actions@github.com"
           git add playlist.txt
           git commit -m "Auto-update MyTV parameters" || true
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git          
-          for i in range(len(license_keys)):
-              template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
-              template = template.replace(f'URL_STREAM_{i+1}', urls[i])
-          
-          with open('playlist.txt', 'w', encoding='utf-8') as f:
-              f.write(template)
-            
-          print(f"Updated {len(license_keys)} channels")
-          EOF
-          
-      - name: Commit changes
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add playlist.txt
-          git commit -m "Auto-update MyTV parameters" || true
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git
