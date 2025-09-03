@@ -34,8 +34,8 @@ jobs:
           license_keys = re.findall(r'license_key=([a-f0-9:]+)', source)
           urls = re.findall(r'(http://[^\s]+)', source)
           
-          # Baca template
-          with open('mytv_template.txt', 'r', encoding='utf-8') as f:
+          # Baca template dari folder Autoupdate
+          with open('Autoupdate/mytv_template.txt', 'r', encoding='utf-8') as f:
               template = f.read()
           
           # Ganti placeholder dengan nilai sebenar
@@ -43,7 +43,7 @@ jobs:
               template = template.replace(f'LICENSE_KEY_{i+1}', license_keys[i])
               template = template.replace(f'URL_STREAM_{i+1}', urls[i])
           
-          # Simpan sebagai playlist akhir
+          # Simpan sebagai playlist akhir di root
           with open('playlist.txt', 'w', encoding='utf-8') as f:
               f.write(template)
               
